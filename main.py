@@ -41,10 +41,6 @@ class Connector:
                 page = page + 1
             else:
                 break
-
-        if config.DEBUG:
-            with open("all_records.json", "w") as f: 
-                f.write(json.dumps(all_records, indent =2))
     
         return all_records
     
@@ -142,9 +138,6 @@ def main():
 
     config.set_logging()
     connector = Connector()
-
-    #Need to come back to make sure we only pull NEW data here; in theory I would feed schoolzilla into get_responses
-    #LastUpdated = connector.get_last_dw_update()
 
     all_records = connector.get_responses()
     df_trans = connector.normalize_json(all_records)
