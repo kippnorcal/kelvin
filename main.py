@@ -34,9 +34,6 @@ class Connector:
         while True:
             r = requests.get(f"{self.url}?page={page}", headers=self.headers).json()
             if r: 
-                if config.DEBUG:
-                    with open(f"records_page{page}.json", "w") as f:
-                        f.write(json.dumps(r, indent=2))
                 all_records.extend(r)
                 page = page + 1
             else:
