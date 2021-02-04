@@ -145,4 +145,4 @@ if __name__ == "__main__":
         logging.exception(e)
         error_message = traceback.format_exc()
     if config.ENABLE_MAILER:
-        Mailer("PROJECT NAME GOES HERE").notify(error_message=error_message)
+        Mailer("Kelvin").notify(error_message=error_message)
