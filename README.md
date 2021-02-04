@@ -1,5 +1,5 @@
-# repo_name
-Description goes here
+# kelvin
+Data pipeline for Kelvin.education student pulse surveys
 
 ## Dependencies:
 
@@ -14,7 +14,7 @@ Description goes here
 1. Clone this repo
 
 ```
-git clone https://github.com/kippnorcal/<this_repo>.git
+git clone https://github.com/kippnorcal/kelvin.git
 ```
 
 2. Create .env file with project secrets
@@ -43,6 +43,9 @@ DEBUG=1
 ## Running the job
 
 ```
-$ docker build -t <repo_name> .
-$ docker run --rm -it <repo_name>
+$ docker build -t kelvin .
+$ docker run --rm -it kelvin
+
+# Useful for printing files to local directory
+$ docker run --rm -it -v ${PWD}:/code/ kelvin
 ```
