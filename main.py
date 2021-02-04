@@ -81,7 +81,6 @@ class Connector:
         """ Lint Columns (timestamp, sort order, data types) """
         df['LastUpdated'] = dt.datetime.now()
 
-        #df.columns = df.columns.str.replace(".", "_", regex = True)
         col_order = [
             "id",
             "pulse_id",
@@ -119,8 +118,6 @@ class Connector:
         for item in dates: 
             df[item] = df[item].astype('datetime64[ns]')
 
-        if config.DEBUG:
-            df.to_csv("dataframe_trans", sep=',')
         return df 
 
     def load_into_dw(self, df): 
