@@ -126,7 +126,20 @@ class Connector:
         tablename = "kelvin_pulse_responses"
         logging.debug(f"{tablename}: inserting {len(df)} records into {tablename}.")
         self.sql.insert_into(tablename, df, chunksize=10000, if_exists='replace')
-        
+    
+    def load_into_survey_model(self):
+        """Take raw Kelvin data and parse it in to relational survey model dims and fact."""
+        table_names = [ # order is required
+            "Survey_dimSurvey",
+            "Survey_dimRespondent",
+            "Survey_dimResponseItem",
+            "Survey_dimQuestion",
+            "Survey_factResponse",
+        ]
+        for table_name in table_names:
+            df = self.sql.query_from_file(f"sql/{table_name}.sql")
+            self.sql.insert_into(table_name, df)
+            logging.info(f"Inserted {len(df)} records into {table_name}.")
 
 def main():
 
@@ -136,6 +149,8 @@ def main():
     all_records = connector.get_responses()
     df_trans = connector.normalize_json(all_records)
     connector.load_into_dw(df_trans)
+
+    connector.load_into_survey_model()
 
 if __name__ == "__main__":
     try:
