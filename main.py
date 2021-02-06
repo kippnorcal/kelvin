@@ -129,7 +129,12 @@ class Connector:
     
     def load_into_survey_model(self):
         """Take raw Kelvin data and parse it in to relational survey model dims and fact."""
-        table_names = [ # order is required
+        # This list allows us to loop through the table names in a specific order,
+        # which is required due to dependencies
+        # - dimRespondent depends on SurveyKey
+        # - dimQuestion depends on dimSurvey and dimResponseItem
+        # - factReponse depends on dimRespondent and dimQuestion
+        table_names = [
             "Survey_dimSurvey",
             "Survey_dimRespondent",
             "Survey_dimResponseItem",
