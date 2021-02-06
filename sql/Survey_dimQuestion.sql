@@ -13,7 +13,7 @@ LEFT JOIN custom.Survey_dimSurvey dsurv
     AND dsurv.System = 'Kelvin'
 LEFT JOIN custom.Survey_dimResponseItem dri
     ON kpr.choice = dri.ResponseOrig
-    AND IIF(kpr.responses_is_favorable = 1, 1, 0) = dri.Sentiment
+    AND CONVERT(INT,kpr.responses_is_favorable) = dri.Sentiment
 WHERE NOT EXISTS (
     SELECT *
     FROM custom.Survey_dimQuestion dq
