@@ -2,7 +2,7 @@ SELECT DISTINCT
     dsurv.SurveyKey AS SurveyKey
     , kpr.responses_stem AS Question
     , kpr.pulse_name AS Domain
-    , NULL AS RSODepartment -- Should this be school culture?
+    , 'School Culture' AS RSODepartment
     , dri.ResponseType
     , NULL AS CommonQuestionKey
     , NULL AS Question_Cleaned
