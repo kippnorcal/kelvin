@@ -16,14 +16,17 @@ SELECT DISTINCT
 FROM custom.kelvin_pulse_responses kpr
 LEFT JOIN custom.Survey_dimSurvey dsurv
     ON kpr.pulse_window_end_date = dsurv.WindowEnd
+    AND dsurv.Name = kpr.pulse_name
     AND dsurv.Category = 'Pulse'
     AND dsurv.System = 'Kelvin'
 LEFT JOIN dw.DW_dimStudent dstu
     ON CONVERT(VARCHAR,kpr.display_id) = dstu.SystemStudentID
 LEFT JOIN custom.lkSchools lks
     ON lks.SchoolKey_SZ = dstu.SchoolKEY_MostRecent
-WHERE NOT EXISTS(
-    SELECT *
-    FROM custom.Survey_dimRespondent dr
-    WHERE dsurv.SurveyKey = dr.SurveyKey
+WHERE lks.ID NOT IN (
+    20 -- Bridge TK-8
+    , 8 -- Excelencia TK-4
+    , 9 -- Excelencia 5-8
+    , 21 -- Valiant TK-4
+    , 22 -- Valiant 5-8
 )
