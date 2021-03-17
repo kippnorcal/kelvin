@@ -3,14 +3,14 @@ SELECT
     , dq.QuestionKey AS QuestionKey
     , kpr.choice AS ResponseOrig
 FROM custom.kelvin_pulse_responses kpr
-LEFT JOIN custom.Survey_dimSurvey dsurv
+INNER JOIN custom.Survey_dimSurvey dsurv
     ON kpr.pulse_window_end_date = dsurv.WindowEnd
     AND dsurv.Category = 'Pulse'
     AND dsurv.System = 'Kelvin'
-LEFT JOIN custom.Survey_dimQuestion dq
+INNER JOIN custom.Survey_dimQuestion dq
     ON kpr.responses_stem = dq.Question
     AND dsurv.SurveyKey = dq.SurveyKey
-LEFT JOIN custom.Survey_dimRespondent dr
+INNER JOIN custom.Survey_dimRespondent dr
     ON kpr.participant_id = dr.RespondentKey
 WHERE NOT EXISTS (
     SELECT *
