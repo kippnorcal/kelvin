@@ -7,6 +7,7 @@ INNER JOIN custom.Survey_dimSurvey dsurv
     ON kpr.pulse_window_end_date = dsurv.WindowEnd
     AND dsurv.Category = 'Pulse'
     AND dsurv.System = 'Kelvin'
+    AND kpr.pulse_name = dsurv.Name
 INNER JOIN custom.Survey_dimQuestion dq
     ON kpr.responses_stem = dq.Question
     AND dsurv.SurveyKey = dq.SurveyKey
