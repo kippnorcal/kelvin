@@ -30,3 +30,9 @@ WHERE lks.ID NOT IN (
     , 21 -- Valiant TK-4
     , 22 -- Valiant 5-8
 )
+    AND NOT EXISTS (
+        SELECT *
+        FROM custom.Survey_dimRespondent dr
+        WHERE kpr.participant_id = dr.RespondentKey
+            AND dsurv.SurveyKey = dr.SurveyKey
+        )
