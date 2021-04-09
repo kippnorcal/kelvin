@@ -23,8 +23,8 @@ LEFT JOIN dw.DW_dimStudent dstu
     ON CONVERT(VARCHAR,kpr.display_id) = dstu.SystemStudentID
 LEFT JOIN custom.lkSchools lks
     ON lks.SchoolKey_SZ = dstu.SchoolKEY_MostRecent
-    AND dstu.GradeLevel_Numeric > lks.LowGrade
-    AND dstu.GradeLevel_Numeric < lks.HighGrade
+    AND dstu.GradeLevel_Numeric >= lks.LowGrade
+    AND dstu.GradeLevel_Numeric <= lks.HighGrade
 WHERE lks.ID NOT IN (
     20 -- Bridge TK-8
     , 8 -- Excelencia TK-4
