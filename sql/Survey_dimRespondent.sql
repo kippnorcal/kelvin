@@ -35,6 +35,6 @@ WHERE lks.ID NOT IN (
     AND NOT EXISTS (
         SELECT *
         FROM custom.Survey_dimRespondent dr
-        WHERE kpr.participant_id = dr.RespondentKey
+        WHERE kpr.participant_id = dr.RespondentKey COLLATE Latin1_General_CS_AS
             AND dsurv.SurveyKey = dr.SurveyKey
         )

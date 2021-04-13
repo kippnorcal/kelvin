@@ -12,7 +12,7 @@ INNER JOIN custom.Survey_dimQuestion dq
     ON kpr.responses_stem = dq.Question
     AND dsurv.SurveyKey = dq.SurveyKey
 INNER JOIN custom.Survey_dimRespondent dr
-    ON kpr.participant_id = dr.RespondentKey
+    ON kpr.participant_id = dr.RespondentKey COLLATE Latin1_General_CS_AS
 WHERE NOT EXISTS (
     SELECT *
     FROM custom.Survey_factResponse fr
