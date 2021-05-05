@@ -1,26 +1,24 @@
+import json
 import os
-import smtplib
-import ssl
 
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import requests
 
 
 class Mailer:
     """
     A mail server connection object for sending email notifications.
-    
+
     Params:
-        jobname:    The name of the job to be referenced in the emails.     
+        jobname:    The name of the job to be referenced in the emails.
     """
 
     def __init__(self, jobname):
         self.jobname = jobname
-        self.user = os.getenv("SENDER_EMAIL")
-        self.password = os.getenv("SENDER_PWD")
-        self.to_email = os.getenv("RECIPIENT_EMAIL")
-        context = ssl.create_default_context()
-        self.server = smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context)
+        self.mg_api_key = os.getenv("MG_API_KEY")
+        self.mg_domain = os.getenv("MG_DOMAIN")
+        self.mg_api_url = os.getenv("MG_API_URL")
+        self.from_address = os.getenv("SENDER_EMAIL")
+        self.to_address = os.getenv("RECIPIENT_EMAIL")
 
     def _subject_line(self):
         """Return formatted subject line based on error message content"""
@@ -34,29 +32,23 @@ class Mailer:
         else:
             return f"{self.jobname} completed successfully."
 
-    def _attachments(self, msg):
-        """Add logs as attachment to email."""
+    def _attachments(self):
+        """Return list of attachments (in this case, logs)"""
         filename = "app.log"
         if os.path.exists(filename):
-            with open(filename, "r") as attachment:
-                log = MIMEText(attachment.read())
-            log.add_header("Content-Disposition", f"attachment; filename= {filename}")
-            msg.attach(log)
-
-    def _message(self):
-        """Construct email message."""
-        msg = MIMEMultipart()
-        msg["Subject"] = self._subject_line()
-        msg["From"] = self.user
-        msg["To"] = self.to_email
-        msg.attach(MIMEText(self._body_text(), "plain"))
-        self._attachments(msg)
-        return msg.as_string()
+            return [("attachment", (filename, open(filename, "rb").read()))]
 
     def notify(self, error_message=None):
-        """Send email success/error notifications."""
+        """Send email success/error notifications using Mailgun API."""
         self.error_message = error_message
-        with self.server as s:
-            s.login(self.user, self.password)
-            msg = self._message()
-            s.sendmail(self.user, self.to_email, msg)
+        requests.post(
+            f"{self.mg_api_url}{self.mg_domain}/messages",
+            auth=("api", self.mg_api_key),
+            files=self._attachments(),
+            data={
+                "from": self.from_address,
+                "to": self.to_address,
+                "subject": self._subject_line(),
+                "text": self._body_text(),
+            },
+        )

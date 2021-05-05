@@ -29,11 +29,12 @@ DB_USER=
 DB_PWD=
 DB_SCHEMA=
 
-
-# Email Credentials (Optional)
+# Mailgun & email notification variables
 ENABLE_MAILER=1
+MG_API_KEY=
+MG_API_URL=
+MG_DOMAIN=
 SENDER_EMAIL=
-SENDER_PWD=
 RECIPIENT_EMAIL=
 
 # Enable Debug Logging (Optional)
