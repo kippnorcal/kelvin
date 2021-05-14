@@ -1,7 +1,7 @@
 SELECT DISTINCT
     dsurv.SurveyKey AS SurveyKey
     , kpr.responses_stem AS Question
-    , kpr.pulse_name AS Domain
+    , kpr.responses_dimension AS Domain
     , 'School Culture' AS RSODepartment
     , dri.ResponseType
     , NULL AS CommonQuestionKey
