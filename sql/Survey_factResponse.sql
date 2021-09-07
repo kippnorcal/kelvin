@@ -26,5 +26,5 @@ INNER JOIN custom.Survey_dimRespondent dr
     ON kpr.participant_id = dr.RespondentKey COLLATE Latin1_General_CS_AS
     AND dsurv.SurveyKey = dr.SurveyKey
 LEFT JOIN existingResponses er
-    ON er.RespondentKey COLLATE Latin1_General_CS_AS + STR(er.QuestionKey) = dr.RespondentKey + STR(dq.QuestionKey)
+    ON er.RespondentKey COLLATE Latin1_General_CS_AS + STR(er.QuestionKey) = dr.RespondentKey COLLATE Latin1_General_CS_AS + STR(dq.QuestionKey)
 WHERE er.QuestionKey IS NULL
