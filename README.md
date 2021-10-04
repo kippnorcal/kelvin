@@ -50,3 +50,11 @@ $ docker run --rm -it kelvin
 # Useful for printing files to local directory
 $ docker run --rm -it -v ${PWD}:/code/ kelvin
 ```
+
+## Troubleshooting and maintenance
+
+### Scheduling
+The job should be scheduled to run once a week because Kelvin Pulse surveys do not close more frequently than weekly. If this frequency changes, then the time window filter in `Survey_factResponse.sql` should also be updated.
+
+### Re-running
+We are not comparing to existing records due to performance challenges. If the job needs to be rerun, you should delete any survey dim and fact data associated with the last week - do this directly in the database. If you don't do this, then there will be duplicates.
