@@ -58,3 +58,8 @@ The job should be scheduled to run once a week because Kelvin Pulse surveys do n
 
 ### Re-running
 We are not comparing to existing records due to performance challenges. If the job needs to be rerun, you should delete any survey dim and fact data associated with the last week - do this directly in the database. If you don't do this, then there will be duplicates.
+
+## Maintenance
+
+* No annual maintenance is required
+* This connector can be paused over the summer and restarted when the first Pulse survey opens
