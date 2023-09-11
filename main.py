@@ -2,12 +2,15 @@ import datetime as dt
 import logging
 import traceback
 
+from job_notifications import create_notifications
 import pandas as pd
 import requests
 from sqlsorcery import MSSQL
 
 import config
-from mailer import Mailer
+
+
+notifications = create_notifications("Kelvin", "mailgun", "app.log")
 
 
 class Connector:
@@ -176,9 +179,8 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-        error_message = None
+        notifications.notify()
     except Exception as e:
         logging.exception(e)
         error_message = traceback.format_exc()
-    if config.ENABLE_MAILER:
-        Mailer("Kelvin").notify(error_message=error_message)
+        notifications.notify(error_message=error_message)
