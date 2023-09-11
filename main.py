@@ -1,12 +1,10 @@
-import json
+import datetime as dt
 import logging
 import traceback
-import csv
-import datetime as dt
 
 import pandas as pd
-from sqlsorcery import MSSQL
 import requests
+from sqlsorcery import MSSQL
 
 import config
 from mailer import Mailer
