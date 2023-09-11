@@ -45,14 +45,12 @@ class Connector:
 
         return all_records
 
-    def normalize_json(
-        self, records
-    ):  # do these variables need to be declared within the class?
+    @staticmethod
+    def normalize_json(self, records):
         """
         Takes in dataframe of all data to be processed, and list of record paths.
         Loops over nested json and returns normalized data frame.
         """
-        df = pd.DataFrame()
         df = pd.json_normalize(
             records,
             record_path=["responses", "choices"],
