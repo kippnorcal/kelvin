@@ -168,7 +168,7 @@ class Connector:
             else:
                 logging.info(f"No records to insert into {table_name}.")
 
-
+@timer("Kelvin")
 def main():
 
     config.set_logging()
