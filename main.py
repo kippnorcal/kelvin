@@ -2,7 +2,7 @@ import datetime as dt
 import logging
 import traceback
 
-from job_notifications import create_notifications
+from job_notifications import create_notifications, timer
 import pandas as pd
 import requests
 from sqlsorcery import MSSQL
@@ -21,14 +21,11 @@ class Connector:
 
     def __init__(self):
         self.sql = MSSQL()
-        token = config.API_TOKEN
-        self.headers = {"Authorization": f"token {token}"}
+        self.headers = {"Authorization": f"token {config.API_TOKEN}"}
         self.url = "https://pulse.kelvin.education/api/v1/pulse_responses"
 
     def get_last_dw_update(self):
-        df = pd.read_sql_table(
-            "kelvin_pulse_responses", con=self.sql.engine, schema=self.sql.schema
-        )
+        df = pd.read_sql_table("kelvin_pulse_responses", con=self.sql.engine, schema=self.sql.schema)
         return df["LastUpdated"].max()
 
     def get_responses(self):
@@ -138,9 +135,9 @@ class Connector:
     def load_into_dw(self, df):
         """Writes the data into the related table"""
 
-        tablename = "kelvin_pulse_responses"
-        logging.debug(f"{tablename}: inserting {len(df)} records into {tablename}.")
-        self.sql.insert_into(tablename, df, chunksize=10000, if_exists="replace")
+        table_name = "kelvin_pulse_responses"
+        logging.info(f"{table_name}: inserting {len(df)} records into {table_name}.")
+        self.sql.insert_into(table_name, df, chunksize=10000, if_exists="replace")
 
     def load_into_survey_model(self):
         """Take raw Kelvin data and parse it in to relational survey model dims and fact."""
@@ -148,7 +145,7 @@ class Connector:
         # which is required due to dependencies
         # - dimRespondent depends on SurveyKey
         # - dimQuestion depends on dimSurvey and dimResponseItem
-        # - factReponse depends on dimRespondent and dimQuestion
+        # - factResponse depends on dimRespondent and dimQuestion
         table_names = [
             "Survey_dimSurvey",
             "Survey_dimRespondent",
