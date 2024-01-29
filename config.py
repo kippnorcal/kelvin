@@ -13,7 +13,7 @@ DEBUG = ARGS.debug or int(os.getenv("DEBUG", default=0))
 API_TOKEN = os.getenv("API_TOKEN")
 
 
-def set_logging():
+def set_logging() -> None:
     """Configure logging level and outputs"""
     logging.basicConfig(
         handlers=[

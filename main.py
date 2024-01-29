@@ -1,6 +1,7 @@
 import datetime as dt
 import logging
 import traceback
+from typing import List
 
 from job_notifications import create_notifications, timer
 import pandas as pd
@@ -24,11 +25,11 @@ class Connector:
         self.headers = {"Authorization": f"token {config.API_TOKEN}"}
         self.url = "https://pulse.kelvin.education/api/v1/pulse_responses"
 
-    def get_last_dw_update(self):
+    def get_last_dw_update(self) -> str:
         df = pd.read_sql_table("kelvin_pulse_responses", con=self.sql.engine, schema=self.sql.schema)
         return df["LastUpdated"].max()
 
-    def get_responses(self):
+    def get_responses(self) -> List[dict]:
         """ Extract data to load into the dw """
         page = 0
         all_records = []
@@ -46,7 +47,7 @@ class Connector:
         return all_records
 
     @staticmethod
-    def normalize_json(records):
+    def normalize_json(records: List[dict]) -> pd.DataFrame:
         """
         Takes in dataframe of all data to be processed, and list of record paths.
         Loops over nested json and returns normalized data frame.
@@ -135,7 +136,7 @@ class Connector:
 
         return df
 
-    def load_into_dw(self, df):
+    def load_into_dw(self, df: pd.DataFrame) -> None:
         """Writes the data into the related table"""
 
         table_name = "kelvin_pulse_responses"
