@@ -35,13 +35,16 @@ class Connector:
         all_records = []
         while True:
             r = requests.get(f"{self.url}?page={page}", headers=self.headers).json()
-            logging.info(f"Requesting data from {self.url} page {page}")
+            logging.debug(f"Requesting data from {self.url} page {page}")
             if r:
                 all_records.extend(r)
-                logging.info(f"Extracted {len(r)} records from page {page}")
+                logging.debug(f"Extracted {len(r)} records from page {page}")
                 page += 1
+                if page % 50 == 0:
+                    # Logging every 50 pages so we know the job isn't stalling
+                    logging.info(f"Page {page} of {self.url}")
             else:
-                logging.info(f"No data from page {page}")
+                logging.debug(f"No data from page {page}")
                 break
 
         return all_records
