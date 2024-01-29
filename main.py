@@ -34,16 +34,19 @@ class Connector:
         all_records = []
         while True:
             r = requests.get(f"{self.url}?page={page}", headers=self.headers).json()
+            logging.info(f"Requesting data from {self.url} page {page}")
             if r:
                 all_records.extend(r)
-                page = page + 1
+                logging.info(f"Extracted {len(r)} records from page {page}")
+                page += 1
             else:
+                logging.info(f"No data from page {page}")
                 break
 
         return all_records
 
     @staticmethod
-    def normalize_json(self, records):
+    def normalize_json(records):
         """
         Takes in dataframe of all data to be processed, and list of record paths.
         Loops over nested json and returns normalized data frame.
@@ -155,8 +158,11 @@ class Connector:
         ]
         for table_name in table_names:
             df = self.sql.query_from_file(f"sql/{table_name}.sql")
-            self.sql.insert_into(table_name, df)
-            logging.info(f"Inserted {len(df)} records into {table_name}.")
+            if not df.empty:
+                self.sql.insert_into(table_name, df)
+                logging.info(f"Inserted {len(df)} records into {table_name}.")
+            else:
+                logging.info(f"No records to insert into {table_name}.")
 
 
 def main():
@@ -164,10 +170,12 @@ def main():
     config.set_logging()
     connector = Connector()
 
+    logging.info("Getting responses from Kelvin")
     all_records = connector.get_responses()
     df_trans = connector.normalize_json(all_records)
+    logging.info("Loading data into kelvin_pulse_responses")
     connector.load_into_dw(df_trans)
-
+    logging.info("Loading data into survey models")
     connector.load_into_survey_model()
 
 
