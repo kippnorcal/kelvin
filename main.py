@@ -200,8 +200,13 @@ def main():
 
     config.set_logging()
     connector = Connector()
-    last_update_date = connector.get_last_dw_update()
-    query_date = calculate_query_date(last_update_date)
+    if not config.ARGS.truncate_reload:
+        last_update_date = connector.get_last_dw_update()
+        query_date = calculate_query_date(last_update_date)
+        logging.info(f"Querying record since {query_date}")
+        connector.query_date = query_date
+    else:
+        logging.info("Full truncate reload of Kelvin data.")
 
     logging.info("Getting responses from Kelvin")
     all_records = connector.get_responses()
