@@ -7,7 +7,7 @@ verify_ssl = true
 
 [packages]
 pandas = "*"
-sqlalchemy = "~=1.4"
+sqlalchemy = "*"
 sqlsorcery = {extras = ["mssql"], version = "*"}
 requests = "*"
 job-notifications = "*"
