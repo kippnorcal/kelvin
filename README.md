@@ -3,7 +3,7 @@ Data pipeline for Kelvin.education student pulse surveys
 
 ## Dependencies:
 
-- Python3.8
+- Python3.X _(see Pipfile for latest version)_
 - [Pipenv](https://pipenv.readthedocs.io/en/latest/)
 - [Docker](https://www.docker.com/)
 
@@ -45,7 +45,15 @@ DEBUG=1
 
 ```
 $ docker build -t kelvin .
+
+# Running job based on most recent "responded_at" date in table
 $ docker run --rm -it kelvin
+
+# Running a full truncate and reload of the data
+$ docker run --rm -it kelvin --truncate-reload
+
+# Run in debug mode
+$ docker run --rm -it kelvin --debug
 
 # Useful for printing files to local directory
 $ docker run --rm -it -v ${PWD}:/code/ kelvin
