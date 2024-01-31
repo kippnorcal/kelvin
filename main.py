@@ -22,8 +22,9 @@ class Connector:
 
     def __init__(self):
         self.sql = MSSQL()
-        self.headers = {"Authorization": f"token {config.API_TOKEN}"}
         self.url = "https://pulse.kelvin.education/api/v1/pulse_responses"
+        self.query_date = None
+        self.headers = {"Authorization": f"token {config.API_TOKEN}"}
 
     def get_last_dw_update(self) -> str:
         df = pd.read_sql_table("kelvin_pulse_responses", con=self.sql.engine, schema=self.sql.schema)
@@ -34,7 +35,8 @@ class Connector:
         page = 0
         all_records = []
         while True:
-            r = requests.get(f"{self.url}?page={page}", headers=self.headers).json()
+            params = self.set_query_params(page)
+            r = requests.get(f"{self.url}", headers=self.headers, params=params).json()
             logging.debug(f"Requesting data from {self.url} page {page}")
             if r:
                 all_records.extend(r)
@@ -48,6 +50,14 @@ class Connector:
                 break
 
         return all_records
+
+    def set_query_params(self, page: int) -> dict:
+        params = {}
+        params["page"] = page
+        if self.query_date is not None:
+            params["after"] = self.query_date
+        return params
+
 
     @staticmethod
     def normalize_json(records: List[dict]) -> pd.DataFrame:
