@@ -27,7 +27,7 @@ class Connector:
 
     def get_last_dw_update(self) -> str:
         df = pd.read_sql_table("kelvin_pulse_responses", con=self.sql.engine, schema=self.sql.schema)
-        return df["LastUpdated"].max()
+        return df["responded_at"].max()
 
     def get_responses(self) -> List[dict]:
         """ Extract data to load into the dw """
@@ -168,11 +168,30 @@ class Connector:
             else:
                 logging.info(f"No records to insert into {table_name}.")
 
+
+def calculate_query_date(last_updated_timestamp: str) -> str:
+    """
+    Moving query date up by a day to avoid duplicates. Since job typically runs on a Sunday, 
+    it should have all of the responses from the last date.
+    """
+    date_str = last_updated_timestamp.split(" ")[0]
+    year, month, day = date_str.split("-")
+    date_obj    = dt.date(
+        year=int(year), 
+        month=int(month), 
+        day=int(day)
+        )
+    query_date = date_obj + dt.timedelta(days=1)
+    return query_date.strftime("%Y-%m-%d")
+
+
 @timer("Kelvin")
 def main():
 
     config.set_logging()
     connector = Connector()
+    last_update_date = connector.get_last_dw_update()
+    query_date = calculate_query_date(last_update_date)
 
     logging.info("Getting responses from Kelvin")
     all_records = connector.get_responses()
