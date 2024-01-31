@@ -1,15 +1,17 @@
-import json
+import datetime as dt
 import logging
 import traceback
-import csv
-import datetime as dt
+from typing import List
 
+from job_notifications import create_notifications, timer
 import pandas as pd
-from sqlsorcery import MSSQL
 import requests
+from sqlsorcery import MSSQL
 
 import config
-from mailer import Mailer
+
+
+notifications = create_notifications("Kelvin", "mailgun", "app.log")
 
 
 class Connector:
@@ -20,38 +22,49 @@ class Connector:
 
     def __init__(self):
         self.sql = MSSQL()
-        token = config.API_TOKEN
-        self.headers = {"Authorization": f"token {token}"}
         self.url = "https://pulse.kelvin.education/api/v1/pulse_responses"
+        self.query_date = None
+        self.headers = {"Authorization": f"token {config.API_TOKEN}"}
 
-    def get_last_dw_update(self):
-        df = pd.read_sql_table(
-            "kelvin_pulse_responses", con=self.sql.engine, schema=self.sql.schema
-        )
-        return df["LastUpdated"].max()
+    def get_last_dw_update(self) -> str:
+        df = pd.read_sql_table("kelvin_pulse_responses", con=self.sql.engine, schema=self.sql.schema)
+        return df["responded_at"].max()
 
-    def get_responses(self):
+    def get_responses(self) -> List[dict]:
         """ Extract data to load into the dw """
         page = 0
         all_records = []
         while True:
-            r = requests.get(f"{self.url}?page={page}", headers=self.headers).json()
+            params = self.set_query_params(page)
+            r = requests.get(f"{self.url}", headers=self.headers, params=params).json()
+            logging.debug(f"Requesting data from {self.url} page {page}")
             if r:
                 all_records.extend(r)
-                page = page + 1
+                logging.debug(f"Extracted {len(r)} records from page {page}")
+                page += 1
+                if page % 50 == 0:
+                    # Logging every 50 pages so we know the job isn't stalling
+                    logging.info(f"Page {page} of {self.url}")
             else:
+                logging.debug(f"No data from page {page}")
                 break
 
         return all_records
 
-    def normalize_json(
-        self, records
-    ):  # do these variables need to be declared within the class?
+    def set_query_params(self, page: int) -> dict:
+        params = {}
+        params["page"] = page
+        if self.query_date is not None:
+            params["after"] = self.query_date
+        return params
+
+
+    @staticmethod
+    def normalize_json(records: List[dict]) -> pd.DataFrame:
         """
         Takes in dataframe of all data to be processed, and list of record paths.
         Loops over nested json and returns normalized data frame.
         """
-        df = pd.DataFrame()
         df = pd.json_normalize(
             records,
             record_path=["responses", "choices"],
@@ -136,12 +149,12 @@ class Connector:
 
         return df
 
-    def load_into_dw(self, df):
+    def load_into_dw(self, df: pd.DataFrame) -> None:
         """Writes the data into the related table"""
 
-        tablename = "kelvin_pulse_responses"
-        logging.debug(f"{tablename}: inserting {len(df)} records into {tablename}.")
-        self.sql.insert_into(tablename, df, chunksize=10000, if_exists="replace")
+        table_name = "kelvin_pulse_responses"
+        logging.info(f"{table_name}: inserting {len(df)} records into {table_name}.")
+        self.sql.insert_into(table_name, df, chunksize=10000, if_exists="replace")
 
     def load_into_survey_model(self):
         """Take raw Kelvin data and parse it in to relational survey model dims and fact."""
@@ -149,7 +162,7 @@ class Connector:
         # which is required due to dependencies
         # - dimRespondent depends on SurveyKey
         # - dimQuestion depends on dimSurvey and dimResponseItem
-        # - factReponse depends on dimRespondent and dimQuestion
+        # - factResponse depends on dimRespondent and dimQuestion
         table_names = [
             "Survey_dimSurvey",
             "Survey_dimRespondent",
@@ -159,28 +172,56 @@ class Connector:
         ]
         for table_name in table_names:
             df = self.sql.query_from_file(f"sql/{table_name}.sql")
-            self.sql.insert_into(table_name, df)
-            logging.info(f"Inserted {len(df)} records into {table_name}.")
+            if not df.empty:
+                self.sql.insert_into(table_name, df)
+                logging.info(f"Inserted {len(df)} records into {table_name}.")
+            else:
+                logging.info(f"No records to insert into {table_name}.")
 
 
+def calculate_query_date(last_updated_timestamp: str) -> str:
+    """
+    Moving query date up by a day to avoid duplicates. Since job typically runs on a Sunday, 
+    it should have all of the responses from the last date.
+    """
+    date_str = last_updated_timestamp.split(" ")[0]
+    year, month, day = date_str.split("-")
+    date_obj    = dt.date(
+        year=int(year), 
+        month=int(month), 
+        day=int(day)
+        )
+    query_date = date_obj + dt.timedelta(days=1)
+    return query_date.strftime("%Y-%m-%d")
+
+
+@timer("Kelvin")
 def main():
 
     config.set_logging()
     connector = Connector()
+    if not config.ARGS.truncate_reload:
+        last_update_date = connector.get_last_dw_update()
+        query_date = calculate_query_date(last_update_date)
+        logging.info(f"Querying record since {query_date}")
+        connector.query_date = query_date
+    else:
+        logging.info("Full truncate reload of Kelvin data.")
 
+    logging.info("Getting responses from Kelvin")
     all_records = connector.get_responses()
     df_trans = connector.normalize_json(all_records)
+    logging.info("Loading data into kelvin_pulse_responses")
     connector.load_into_dw(df_trans)
-
+    logging.info("Loading data into survey models")
     connector.load_into_survey_model()
 
 
 if __name__ == "__main__":
     try:
         main()
-        error_message = None
+        notifications.notify()
     except Exception as e:
         logging.exception(e)
         error_message = traceback.format_exc()
-    if config.ENABLE_MAILER:
-        Mailer("Kelvin").notify(error_message=error_message)
+        notifications.notify(error_message=error_message)
