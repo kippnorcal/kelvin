@@ -1,9 +1,24 @@
-### Schema
+# Schema
 
+
+## Endpoint
 Use the `/api/v1/pulse_responses` endpoint to access pulse responses. This
 endpoint will return an array of Pulse Response objects.
 
-Pulse Response objects
+### Params
+There are two parameters fot the endpoint
+- __page__: This parameter is used for pagination.
+- __after__: This parameter is used to return results after specified date using _YYYY-MM-DD_ format. 
+
+From Kelvin Support on the __after__ parameter: "Generally speaking once you pull results for a specific date range you don't need to pull it again, so this should drastically reduce the number of requests you need to call."
+
+Example endpoint call with params:
+```
+https://pulse.kelvin.education/api/v1/pulse_responses?page=0&after=2024-01-29
+```
+
+
+## Pulse Response objects
 
 ```
 [
